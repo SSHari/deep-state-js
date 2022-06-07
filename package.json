@@ -1,0 +1,41 @@
+{
+  "name": "deep-state-js",
+  "version": "1.0.0",
+  "description": "A reactive JS store that intelligently recalculates state based on dependency chains",
+  "main": "app.js",
+  "scripts": {
+    "test": "jest",
+    "build": "npm-run-all --parallel build:app build:types",
+    "build:app": "rollup -c",
+    "build:types": "tsc -p tsconfig.build.json",
+    "format:files": "prettier --ignore-path .gitignore .",
+    "format:check": "npm run format:files -- --check",
+    "format": "npm run format:files -- --write",
+    "lint": "eslint .",
+    "prepare": "husky install",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false",
+    "validate": "npm-run-all --parallel format:check lint test typecheck"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SSHari/deep-state-js.git"
+  },
+  "author": "Sai Hari",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/SSHari/deep-state-js/issues"
+  },
+  "homepage": "https://github.com/SSHari/deep-state-js#readme",
+  "devDependencies": {
+    "ssh-dev-scripts": "^1.2.0"
+  },
+  "keywords": [
+    "js",
+    "javascript",
+    "state",
+    "store",
+    "dependency",
+    "dependencies",
+    "graph"
+  ]
+}
