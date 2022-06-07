@@ -2,7 +2,15 @@
   "name": "deep-state-js",
   "version": "1.0.0",
   "description": "A reactive JS store that intelligently recalculates state based on dependency chains",
-  "main": "app.js",
+  "main": "dist/index.cjs.js",
+  "module": "dist/index.esm.js",
+  "typings": "dist/types/deep-state.d.ts",
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "tag": "latest"
+  },
   "scripts": {
     "test": "jest",
     "build": "npm-run-all --parallel build:app build:types",
@@ -37,5 +45,8 @@
     "dependency",
     "dependencies",
     "graph"
-  ]
+  ],
+  "dependencies": {
+    "@babel/runtime": "^7.18.3"
+  }
 }
