@@ -15,14 +15,14 @@ export type Configs<Collection extends DataCollection = DataCollection> = {
           [DependencyKey in keyof Collection]: {
             key: DependencyKey;
             keys?: never;
-            cond: (data: Collection[DependencyKey]) => boolean;
+            cond: true | ((data: Collection[DependencyKey]) => boolean);
             effects: RecursivePartial<Collection[Key]> | ((data: Collection[DependencyKey]) => RecursivePartial<Collection[Key]>);
           };
         }[keyof Collection]
       | {
           key?: never;
           keys: (keyof Collection)[];
-          cond: (data: Collection) => boolean;
+          cond: true | ((data: Collection) => boolean);
           effects: RecursivePartial<Collection[Key]> | ((data: Collection) => RecursivePartial<Collection[Key]>);
         }
     )[];
@@ -43,4 +43,9 @@ export type Subscribers = Set<() => void>;
 
 export type Updater<T extends any> = T | ((prev: T) => T);
 
-export type ResetConfig = { data?: boolean; dependencies?: boolean };
+export type Store<Collection extends DataCollection = DataCollection> = {
+  getSnapshot(): Collection;
+  reset(configs: Configs<Collection>, options?: { data?: boolean; dependencies?: boolean }): void;
+  update(key: string, updater: Updater<Data>): void;
+  subscribe(fn: () => void): () => void;
+};

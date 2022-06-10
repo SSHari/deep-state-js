@@ -157,6 +157,31 @@ it("doesn't allow access to key data in a composite dependency if the key isn't 
   );
 });
 
+it('allows a cond to be set to true for effects which should always be applied', () => {
+  const depState = createStore({
+    'key-one': {
+      data: { value: 0 },
+      dependencies: [{ key: 'key-one', cond: true, effects: { value: 1 } }],
+    },
+    'key-two': {
+      data: { value: 0 },
+      dependencies: [{ key: 'key-one', cond: true, effects: (data) => ({ value: data.value }) }],
+    },
+    'key-three': {
+      data: { value: 0 },
+      dependencies: [
+        {
+          keys: ['key-one', 'key-two'],
+          cond: true,
+          effects: (data) => ({ value: data['key-one'].value + data['key-two'].value }),
+        },
+      ],
+    },
+  });
+
+  expect(depState.getSnapshot()).toEqual({ 'key-one': { value: 1 }, 'key-two': { value: 1 }, 'key-three': { value: 2 } });
+});
+
 it('correctly notifies subscribers on an update while subscribed', () => {
   const depState = createStore({ 'key-one': { data: {} }, 'key-two': { data: {} } });
 

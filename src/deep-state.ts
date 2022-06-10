@@ -1,5 +1,5 @@
 import { mapObj, filterObj, buildDependencyMap, merge, deepEquals, walkObj } from './utils';
-import type { Configs, Data, DataCollection, Graph, ResetConfig, Subscribers, Updater } from './deep-state.type';
+import type { Configs, Data, DataCollection, Graph, Subscribers, Store } from './deep-state.type';
 
 function buildGraphNode(config: Configs[string], nodeKey: string): Graph[string] {
   let currentDependencies = config.dependencies ?? [];
@@ -17,7 +17,7 @@ function buildGraphNode(config: Configs[string], nodeKey: string): Graph[string]
       currentDependencies.forEach((dependency, index) => {
         if (dependency.key) {
           const { data } = graph[dependency.key];
-          if (dependency.cond(data)) {
+          if (typeof dependency.cond === 'function' ? dependency.cond(data) : !!dependency.cond) {
             const dependencyEffects = typeof dependency.effects === 'function' ? dependency.effects(data) : dependency.effects;
             mergedData = merge(mergedData, dependencyEffects);
           }
@@ -31,7 +31,7 @@ function buildGraphNode(config: Configs[string], nodeKey: string): Graph[string]
             },
           });
 
-          if (dependency.cond(dataCollectionProxy)) {
+          if (typeof dependency.cond === 'function' ? dependency.cond(dataCollectionProxy) : !!dependency.cond) {
             const dependencyEffects = typeof dependency.effects === 'function' ? dependency.effects(dataCollectionProxy) : dependency.effects;
             mergedData = merge(mergedData, dependencyEffects);
           }
@@ -59,7 +59,7 @@ function buildGraphNode(config: Configs[string], nodeKey: string): Graph[string]
   };
 }
 
-export function createStore<Collection extends DataCollection = DataCollection>(config: Configs<Collection>) {
+export function createStore<Collection extends DataCollection = DataCollection>(config: Configs<Collection>): Store<Collection> {
   const graph: Graph = mapObj(config as Configs, buildGraphNode);
   const subscribers: Subscribers = new Set();
   let dependencyMap = buildDependencyMap(config as Configs);
@@ -86,50 +86,45 @@ export function createStore<Collection extends DataCollection = DataCollection>(
     }
   }
 
-  /**
-   * Updaters
-   */
-  function reset(config: Configs<Collection>, { data = true, dependencies = false }: ResetConfig = {}) {
-    walkObj(config as Configs, (value, key) => {
-      data && graph[key].resetData(value.data);
-      dependencies && graph[key].resetDependencies(value.dependencies);
-    });
-    dependencyMap = buildDependencyMap(config as Configs);
-    calculateDependencies();
-    snapshot = mapObj(graph, (value) => value.data);
-    subscribers.forEach((subscriber) => subscriber());
-  }
-
-  function update(key: string, updater: Updater<Data>) {
-    graph[key].setData(updater);
-    calculateDependencies([key]);
-    snapshot = mapObj(graph, (value) => value.data);
-    subscribers.forEach((subscriber) => subscriber());
-  }
-
-  /**
-   * Subscribers
-   */
-  function subscribe(fn: () => void) {
-    subscribers.add(fn);
-    return () => subscribers.delete(fn);
+  let snapshot: Collection;
+  function updateSnapshot() {
+    snapshot = mapObj(graph, (value) => value.data) as Collection;
   }
 
   /**
    * Initialize
    */
   calculateDependencies();
-  let snapshot = mapObj(graph, (value) => value.data);
+  updateSnapshot();
 
   return {
     getSnapshot() {
       return snapshot;
     },
-    reset,
-    update,
-    subscribe,
+    reset(config, { data = true, dependencies = false } = {}) {
+      walkObj(config as Configs, (value, key) => {
+        data && graph[key].resetData(value.data);
+        dependencies && graph[key].resetDependencies(value.dependencies);
+      });
+      dependencyMap = buildDependencyMap(config as Configs);
+      calculateDependencies();
+      updateSnapshot();
+      subscribers.forEach((subscriber) => subscriber());
+    },
+    update(key, updater) {
+      graph[key].setData(updater);
+      calculateDependencies([key]);
+      updateSnapshot();
+      subscribers.forEach((subscriber) => subscriber());
+    },
+    subscribe(fn) {
+      subscribers.add(fn);
+      return () => {
+        subscribers.delete(fn);
+      };
+    },
   };
 }
 
 /* Re-export types */
-export type { Configs, Data, DataCollection, Graph, Updater } from './deep-state.type';
+export type { Configs, Data, DataCollection, Graph, Store, Updater } from './deep-state.type';
