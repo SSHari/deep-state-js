@@ -11,13 +11,13 @@ A reactive JS store that intelligently recalculates state based on dependency ch
 - [Installation](#installation)
 - [What is this?](#what-is-this)
 - [How To](#how-to)
-- [Examples](#example)
+- [Examples](#examples)
   - [Example: Jack and Jill](#example-jack-and-jill)
-  - [Example: Basic Dependencies](#example-form-state)
+  - [Example: Basic Dependencies](#example-basic-dependencies)
   - [Example: Dependency Stacking](#example-dependency-stacking)
-  - [Example: Dynamic Effects](#example-dependency-stacking)
+  - [Example: Dynamic Effects](#example-dynamic-effects)
   - [Example: Cyclic Dependencies](#example-cyclic-dependencies)
-  - [Example: Composite Dependencies](#example-cyclic-dependencies)
+  - [Example: Composite Dependencies](#example-composite-dependencies)
 - [Types](#types)
 
 ## Installation
@@ -99,7 +99,7 @@ store.subscribe(() => {
 });
 ```
 
-## Example
+## Examples
 
 ### Example: Jack and Jill
 
@@ -152,7 +152,7 @@ store.update('Jack', { isUpTheHill: true });
 
 Jill is dependent on Jack, so she automagically follows...
 
-### Basic Dependencies
+### Example: Basic Dependencies
 
 Imagine a form with a subscribe to newsletter checkbox and an associated email text field. The email text field should only be enabled and have a value if the subscribe checkbox is checked (i.e. has a `true` value). Here's how you'd establish that relationship.
 
@@ -176,7 +176,7 @@ const store = createStore({
 });
 ```
 
-### Dependency Stacking
+### Example: Dependency Stacking
 
 You may have noticed that the dependencies property is an array which means that multiple dependencies can be applied to a given key. This begs the question, what happens if dependencies clash. In this case, the order of the dependencies matters.
 
@@ -246,7 +246,7 @@ const store = createStore({
 });
 ```
 
-### Dynamic Effects
+### Example: Dynamic Effects
 
 Until now, all the effects we've seen have been static objects that are applied on top of a given key's data. Effects have a secondary functional form which allows for a more dynamic experience.
 
@@ -273,7 +273,7 @@ const store = createStore({
 });
 ```
 
-### Cyclic Dependencies
+### Example: Cyclic Dependencies
 
 Let's go back to our example of Jack and Jill. If Jack goes up the hill first, then Jill should automatically follow. However, if Jill goes up the hill first, then Jack should automatically follow. To accomplish this, each person needs to be dependent on the other person. `deep-state-js` supports cyclic dependencies, so accomplishing this is trivial...
 
@@ -304,7 +304,7 @@ const store = createStore({
 });
 ```
 
-### Composite Dependencies
+### Example: Composite Dependencies
 
 Imagine a form with two fields that represent a range such as a start date and an end date. The start date is only valid if it's less than the end date and the end date is only valid if it's greater than the start date. In other words, this has the same problem as the previous example that each field is dependent on one another. However, there's a twist because not only do we need the data of the other field, but we need to be able to compare it with the current field's data.
 
